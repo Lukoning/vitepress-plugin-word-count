@@ -1,4 +1,4 @@
-import { load } from 'cheerio'
+import { parse } from 'node-html-parser';
 
 /**
  * 统计结果接口
@@ -12,6 +12,8 @@ export interface WordCountResult {
     noCjk: number
     /** 其他字符数 */
     other: number
+    /** 解析后的原文 */
+    text: string
 }
 
 /**
@@ -37,7 +39,8 @@ const DEFAULT_READING_SPEED: ReadingSpeed = {
  * @returns 包装后的渲染函数
  */
 export function withWordCountAndReadingTime<P extends any[]>(
-    render: (src: string, env?: any, ...rest: P) => string
+    render: (src: string, env?: any, ...rest: P) => string,
+    ReadingSpeed: Partial<ReadingSpeed> = {}
 ): (src: string, env?: any, ...rest: P) => string {
     return function (this: unknown, src: string, env: any = {}, ...rest: P): string {
         const html = render.call(this, src, env, ...rest)
@@ -45,7 +48,7 @@ export function withWordCountAndReadingTime<P extends any[]>(
         // 注入到 env.frontmatter
         env.frontmatter ??= {}
         env.frontmatter.wordCount = stats.total
-        env.frontmatter.readingTime = getReadingTime(stats)
+        env.frontmatter.readingTime = getReadingTime(stats, ReadingSpeed)
         env.frontmatter.wordCountStats = stats
         return html
     }
@@ -55,11 +58,14 @@ export function withWordCountAndReadingTime<P extends any[]>(
  * 通用字数统计：任何语言的字母序列（字母、数字、连字符）作为一个单词，
  * 但 CJK 字符每个单独计数。
  */
-export function getWordCount(htmlString: string) {
-    const $ = load(htmlString)
-    // 去掉无关元素
-    $('script, style, noscript, meta, link').remove()
-    let text = $('body').text()
+export function getWordCount(html: string): WordCountResult {
+
+    // 解析html
+    const doc = parse(html)
+    // 获取所有文本节点内容，并去除插值语法、HTML特殊字符
+    const text = doc.innerText
+        .replace(/\{\{.*?\}\}/g, " ")
+        .replace(/&(?:[a-zA-Z][a-zA-Z0-9]+|#\d+|#x[0-9a-fA-F]+);/g, " ")
 
     // 是中日韩字符吗？
     function isCJKChar(char: string): boolean {
@@ -70,7 +76,7 @@ export function getWordCount(htmlString: string) {
             (code >= 0xf900 && code <= 0xfaff) || // 兼容汉字
             (code >= 0xac00 && code <= 0xd7af) || // 韩文谚文
             (code >= 0x3040 && code <= 0x309f) || // 平假名
-            (code >= 0x30a0 && code <= 0x30ff)   // 片假名
+            (code >= 0x30a0 && code <= 0x30ff)    // 片假名
         )
     }
 
@@ -93,19 +99,19 @@ export function getWordCount(htmlString: string) {
             currentWord = ''
         }
     }
-    for (const ch of text) {
-        if (isCJKChar(ch)) {
+    for (const char of text) {
+        if (isCJKChar(char)) {
             // 遇到 CJK 字符：先结束之前的单词（如果有）
             wordOver()
             cjk++
-        } else if (isWordChar(ch)) {
+        } else if (isWordChar(char)) {
             // 单词字符：加入当前单词缓冲区
-            currentWord += ch
+            currentWord += char
         } else {
             // 非单词字符（空格、标点等）：结束当前单词
             wordOver()
-            // 如果并非空格，其他符号+1
-            if (/\s/g.test(ch)) other++
+            // 如果并非空白字符/特殊字符，其他符号+1
+            if (!/\s|[\p{C}]/u.test(char)) other++
         }
     }
     
