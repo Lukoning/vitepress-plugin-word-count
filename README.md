@@ -21,17 +21,14 @@ export default defineConfig({
   markdown: {
     config(md) {
       md.render = withWordCountAndReadingTime(md.render, {
-          // 阅读速度配置
-          cjk: 330,   // 中日韩字符，默认 330
-          noCjk: 200, // 其他语言单词，默认 200
-          other: 1000, // 其他字符（标点之类的），默认 1000
+          // 阅读速度配置，详见「#配置」
       });
     }
   }
 })
 ```
 
-随后可以在markdown中使用，比如：
+随后可以利用插值语法，在markdown中使用，比如：
 
 ```markdown
 <script setup lang="ts">
@@ -39,11 +36,25 @@ import { useData } from 'vitepress'
 const { frontmatter } = useData()
 </script>
 
-_My {{frontmatter.wordCount}} Words!_
+这是，一个，示例文件！
 
-*Only {{frontmatter.readingTime}} Minutes!*
+My {{frontmatter.wordCount}} Words!
 
-**Let's See All Details! {{frontmatter.wordCountStats}}**
+Only {{frontmatter.readingTime}} Minutes!
+
+Let's See All Details! {{frontmatter.wordCountStats}}
+```
+
+输出：
+
+```text
+这是，一个，示例文件！
+
+My 22 Words!
+
+Only 0.5 Minutes!
+
+Let's See All Details! { "total": 22, "cjk": 8, "noCjk": 11, "other": 3, "character": 125, "text": "这是，一个，示例文件！\nMy !InterpolationHere! Words!\nOnly !InterpolationHere! Minutes!\nLet's See All Details! !InterpolationHere! \n" }
 ```
 
 或者自定义一个vue组件，以显示文字计数
@@ -87,7 +98,9 @@ const { frontmatter } = useData()
 </template>
 ```
 
-可通过[布局插槽](https://vitepress.dev/guide/extending-default-theme#layout-slots)直接插入示例组件：
+可通过[布局插槽](https://vitepress.dev/guide/extending-default-theme#layout-slots)直接插入示例组件。
+
+比如：
 
 ```vue
 <!-- MyLayout.vue -->
@@ -119,6 +132,102 @@ export default {
 ```
 
 </details>
+
+## 配置
+
+```ts
+/**
+ * 阅读速度配置（单位：字/分钟）
+ */
+export interface ReadingSpeed {
+  /* 中日韩字符阅读速度
+  *  @default 330
+  */
+  cjk?: number
+  /* 其他语言阅读速度
+  *  @default 200
+  */
+  noCjk?: number
+  /* 其他字符（全角标点）
+  *  @default 1000
+  */
+  other?: number
+}
+```
+
+可在VitePress配置文件自定义默认阅读速度：
+
+```ts
+md.render = withWordCountAndReadingTime(md.render, {
+  // 阅读速度配置（单位：字/分钟）
+  cjk: 330,    // 中日韩字符，默认 330
+  noCjk: 200,  // 其他语言单词，默认 200
+  other: 1000 // 其他字符（标点之类的），默认 1000
+});
+```
+
+也可以在frontmatter中为单个文件配置阅读速度，这会覆盖默认速度：
+
+```markdown
+---
+title: My .md file!
+readingSpeed:
+  cjk: .Inf
+  noCjk: 0.0001
+  other: 100000
+---
+
+<script setup lang="ts">
+import { useData } from 'vitepress'
+const { frontmatter } = useData()
+</script>
+
+Only {{frontmatter.readingTime}} Minutes!
+```
+
+输出：
+
+```text
+Only 30000 Minutes!
+```
+
+## API
+
+```ts
+/**
+ * 统计结果接口
+ */
+interface WordCountResult {
+    /** 总字数 */
+    total: number;
+    /** 中日韩字符数（汉字、日文假名、韩文谚文） */
+    cjk: number;
+    /** 其他语言单词数 */
+    noCjk: number;
+    /** 全角标点等其他字符数 */
+    other: number;
+    /** 所有字符数 */
+    character: number;
+    /** 解析后的原文 */
+    text: string;
+}
+
+/**
+ * 通用字数统计：任何语言的字母序列（字母、数字、连字符）作为一个单词，
+ * 但 CJK 字符每个单独计数。
+ * @param html 原始 HTML 字符串
+ * @returns 字数统计结果
+ */
+declare function getWordCount(html: string): WordCountResult;
+
+/**
+ * 计算阅读时长（分钟）
+ * @param stats 字数统计结果
+ * @param speed 可选的速度配置
+ * @returns 阅读时长（分钟），向上取整到0.5分钟
+ */
+declare function getReadingTime(stats: WordCountResult, speed?: ReadingSpeed): number;
+```
 
 ## 许可证
 

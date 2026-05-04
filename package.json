@@ -1,6 +1,6 @@
 {
   "name": "vitepress-plugin-word-count",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Simple word count plugin for vitepress",
   "keywords": [],
   "homepage": "https://github.com/Lukoning/vitepress-plugin-word-count#readme",

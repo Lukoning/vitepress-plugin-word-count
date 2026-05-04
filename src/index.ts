@@ -53,7 +53,10 @@ export function withWordCountAndReadingTime<P extends any[]>(
         // 注入到 env.frontmatter
         env.frontmatter ??= {}
         env.frontmatter.wordCount = stats.total
-        env.frontmatter.readingTime = getReadingTime(stats, ReadingSpeed)
+        // 阅读时间配置可被frontmatter覆盖
+        env.frontmatter.readingTime = getReadingTime(stats, {
+            ...ReadingSpeed, ...env.frontmatter.readingSpeed
+        })
         env.frontmatter.wordCountStats = stats
         return html
     }
@@ -69,9 +72,9 @@ export function getWordCount(html: string): WordCountResult {
 
     // 解析html
     const doc = parse(html)
-    // 获取所有文本节点内容，并去除插值语法、HTML特殊字符
+    // 获取所有文本节点内容，并替换插值语法、去除HTML特殊字符
     const text = doc.innerText
-        .replace(/\{\{.*?\}\}/g, " ")
+        .replace(/\{\{.*?\}\}/g, " !InterpolationHere! ")
         .replace(/&(?:[a-zA-Z][a-zA-Z0-9]+|#\d+|#x[0-9a-fA-F]+);/g, " ")
 
     // 是中日韩字符吗？
