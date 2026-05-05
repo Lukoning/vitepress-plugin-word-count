@@ -7,10 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      get-east-asian-width:
-        specifier: ^1.5.0
-        version: 1.5.0
     devDependencies:
       '@types/node':
         specifier: ^25.6.0
@@ -18,6 +14,9 @@ importers:
       '@vitejs/plugin-vue':
         specifier: ^5.2.4
         version: 5.2.4(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7))(vue@3.5.33(typescript@6.0.3))
+      get-east-asian-width:
+        specifier: ^1.5.0
+        version: 1.5.0
       node-html-parser:
         specifier: ^7.1.0
         version: 7.1.0

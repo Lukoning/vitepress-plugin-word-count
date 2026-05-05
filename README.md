@@ -1,12 +1,21 @@
 # vitepress-plugin-word-count
 
-简单的文字计数VitePress插件，在解析markdown时统计字数并注入frontmatter
+简单轻量的文字计数VitePress插件。
+
+插件会在解析markdown时统计字数并注入frontmatter，不会在运行时才统计。
+
+- [安装](#安装)
+- [使用](#使用)
+- [配置](#配置)
+- [API](#API)
+- [我可以在非vitepress项目安装吗](#我可以在非vitepress项目安装吗)
+- [许可证](#许可证)
 
 ## 安装
 
 ```bash
-npm i vitepress-plugin-word-count
-# pnpm add vitepress-plugin-word-count
+npm install --save-dev vitepress-plugin-word-count
+# pnpm add --save-dev vitepress-plugin-word-count
 # ...
 ```
 
@@ -89,10 +98,10 @@ const { frontmatter } = useData()
 <template>
   <div class="WordCountContainer">
     <span class="WordCount">
-      Word Count: {{ frontmatter.wordCount || 'null' }}
+      Word Count: {{ frontmatter.wordCount }}
     </span>
     <span class="ReadingTime">
-      Reading Time: {{ frontmatter.readingTime || 'null' }} minute
+      Reading Time: {{ frontmatter.readingTime }} minute
     </span>
   </div>
 </template>
@@ -228,6 +237,14 @@ declare function getWordCount(html: string): WordCountResult;
  */
 declare function getReadingTime(stats: WordCountResult, speed?: ReadingSpeed): number;
 ```
+
+## 我可以在非VitePress项目安装吗
+
+当然可以！如果你只导入并使用API的话，按理说任何Node.js项目都行。
+
+这个插件非常轻量，甚至不依赖VitePress运行。作者开发插件的目的是在VitePress项目中使用，所以叫VitePress插件，仅此而已。
+
+理论上该插件还可以适用于任何使用markdown-it作为markdown解析器的项目，但不保证一定能用。
 
 ## 许可证
 

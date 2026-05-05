@@ -1,6 +1,6 @@
 {
   "name": "vitepress-plugin-word-count",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "Simple word count plugin for vitepress",
   "keywords": [],
   "homepage": "https://github.com/Lukoning/vitepress-plugin-word-count#readme",
@@ -22,8 +22,7 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
-    },
-    "./WordCount.vue": "./WordCount.vue"
+    }
   },
   "files": [
     "dist"
@@ -36,14 +35,12 @@
   "devDependencies": {
     "@types/node": "^25.6.0",
     "@vitejs/plugin-vue": "^5.2.4",
+    "get-east-asian-width": "^1.5.0",
     "node-html-parser": "^7.1.0",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
     "node-html-parser": "^7.1.0"
-  },
-  "dependencies": {
-    "get-east-asian-width": "^1.5.0"
   }
 }
